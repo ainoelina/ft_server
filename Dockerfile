@@ -17,8 +17,8 @@ RUN		apt install -y nginx; \
 # copy files
 COPY	./srcs/nginx.conf ./tmp/nginx.conf
 COPY	./srcs/config.inc.php ./tmp/config.inc.php
-COPY	./srcs/index.html ./tmp/index.html
-COPY	./srcs/background.jpg ./tmp/background.jpg
+COPY	./srcs/web/index.html ./tmp/index.html
+COPY	./srcs/web/background.jpg ./tmp/background.jpg
 
 # configure access
 RUN		chown -R www-data /var/www/*; \
@@ -31,7 +31,10 @@ RUN		mkdir /var/www/localhost; \
 
 # SSL key and certificate
 RUN		mkdir /etc/nginx/ssl; \
-		openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/localhost.key -out /etc/ssl/certs/localhost.crt -subj "/CN=localhost"
+		openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+		-keyout /etc/ssl/private/localhost.key \
+		-out /etc/ssl/certs/localhost.crt \
+		-subj "/CN=localhost"
 
 # Nginx configuration
 COPY	./srcs/nginx.conf /etc/nginx/sites-available/localhost
@@ -61,7 +64,11 @@ RUN		service mysql start; \
 		cd /var/www/localhost/wordpress; \
 		wp core download --allow-root; \
 		wp config create --dbname=wordpress --dbuser=user --dbpass=password --allow-root; \
-		wp core install --url=https://localhost/wordpress/ --title="hello there" --admin_user='user' --admin_password='password' --admin_email='avuorio@student.codam.nl' --allow-root
+		wp core install --url=https://localhost/wordpress --title="hello there" --admin_user='user' --admin_password='password' --admin_email='avuorio@student.codam.nl' --allow-root
+
+# enable autoindex changes
+COPY	./srcs/autoindex.sh /autoindex.sh
+RUN		chmod +x /autoindex.sh
 
 # open ports
 EXPOSE	80 443
